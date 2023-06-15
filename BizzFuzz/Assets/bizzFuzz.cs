@@ -19,6 +19,8 @@ public class bizzFuzz : MonoBehaviour {
     int ModuleId;
     private bool ModuleSolved;
 
+    List<string> solution = new List<string>();
+
     void Awake () {
         ModuleId = ModuleIdCounter++;
         GetComponent<KMBombModule>().OnActivate += Activate;
@@ -56,7 +58,6 @@ public class bizzFuzz : MonoBehaviour {
         string newNumber = "";
         List<string> validPhrases = new List<string>();
         string finalNumber = "";
-        List<string> solution = new List<string>();
         
         //5x loop to generate solutions until it finds a solution that uses a phrase
         for (int f=0; f<5; f++) {
@@ -213,14 +214,45 @@ public class bizzFuzz : MonoBehaviour {
     }
 
 #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"Use !{0} to do something.";
+    private readonly string TwitchHelpMessage = @"Use !{0} 1-9 to press the phrases in reading order. Use !{0} s/r to press the submit or reset button. Commands may be chained like '35s'.";
 #pragma warning restore 414
 
-    IEnumerator ProcessTwitchCommand (string Command) {
-        yield return null;
+    KMSelectable[] ProcessTwitchCommand (string Command) {
+        foreach(char i in Command) {
+            string f = i.ToString().ToLower();
+            string[] accepted = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "s", "r", " " };
+            int counting = 0;
+            foreach(string h in accepted) {
+                if(h == f) {
+                    counting++;
+                }
+            }
+            if(counting == 0) { return null; }
+        }
+        List<KMSelectable> buttonList = new List<KMSelectable>();
+        foreach(char i in Command) {
+            string f = i.ToString().ToLower();
+            if(f == "s") {
+                buttonList.Add(buttons[0]);
+            } else if(f == "r") {
+                buttonList.Add(buttons[1]);
+            } else {
+                buttonList.Add(buttons[int.Parse(f)+1]);
+            }
+        }
+        return buttonList.ToArray();
     }
 
-    IEnumerator TwitchHandleForcedSolve () {
-        yield return null;
+    KMSelectable[] TwitchHandleForcedSolve () {
+        List<KMSelectable> buttonList = new List<KMSelectable>();
+        foreach(string i in solution) {
+            for(int f=2; f<11; f++) {
+                if(buttons[f].transform.Find("New Text").GetComponent<TextMesh>().text == i) {
+                    buttonList.Add(buttons[f]);
+                }
+            }
+        }
+        buttonList.Add(buttons[0]);
+        return buttonList.ToArray();
     }
 }
